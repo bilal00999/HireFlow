@@ -80,6 +80,32 @@ public class ApplicationService {
                 .stream().map(this::toApplicant).toList();
     }
 
+    // --- HR or owning candidate: full application detail ---
+    public ApplicationDetailDto getById(UUID applicationId) {
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+
+        String role = SecurityUtils.currentRole();
+        UUID currentUserId = SecurityUtils.currentUserId();
+
+        if ("CANDIDATE".equals(role)) {
+            if (!application.getUserId().equals(currentUserId)) {
+                throw new BadRequestException("You can only view your own applications");
+            }
+        } else if ("HR".equals(role)) {
+            Job job = requireOwnedJob(application.getJobId());
+            if (job == null) {
+                throw new ResourceNotFoundException("Job not found");
+            }
+        } else {
+            throw new BadRequestException("You do not have permission to view this application");
+        }
+
+        Job job = jobRepository.findById(application.getJobId()).orElse(null);
+        User candidate = userRepository.findById(application.getUserId()).orElse(null);
+        return toDetail(application, job, candidate);
+    }
+
     // Ensures the job exists AND belongs to the calling HR account.
     private Job requireOwnedJob(UUID jobId) {
         UUID companyId = SecurityUtils.currentUserId();
@@ -114,6 +140,27 @@ public class ApplicationService {
                 a.getRejectionReason(),
                 a.getCreatedAt());
     }
+
+            private ApplicationDetailDto toDetail(Application application, Job job, User candidate) {
+            var jobRef = new ApplicationDetailDto.JobRef(
+                application.getJobId().toString(),
+                job != null ? job.getTitle() : "Unknown",
+                job != null ? companyName(job.getCompanyId()) : "Unknown");
+            var candidateRef = new ApplicationDetailDto.CandidateRef(
+                application.getUserId().toString(),
+                candidate != null ? candidate.getFullName() : "Unknown",
+                candidate != null ? candidate.getEmail() : "Unknown");
+
+            return new ApplicationDetailDto(
+                application.getId().toString(),
+                jobRef,
+                candidateRef,
+                application.getResumeUrl(),
+                application.getCoverLetter(),
+                application.getStage(),
+                application.getRejectionReason(),
+                application.getCreatedAt());
+            }
 
     private String companyName(UUID companyId) {
         return companyRepository.findById(companyId).map(Company::getName).orElse("Unknown");

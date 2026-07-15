@@ -1,5 +1,6 @@
 package com.example.demo.common;
 
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.UUID;
@@ -19,5 +20,22 @@ public final class SecurityUtils {
             return null;
         }
         return UUID.fromString(auth.getPrincipal().toString());
+    }
+
+    /** Returns the authenticated role name without the ROLE_ prefix, or null for anonymous requests. */
+    public static String currentRole() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) {
+            return null;
+        }
+
+        for (GrantedAuthority authority : auth.getAuthorities()) {
+            String value = authority.getAuthority();
+            if (value != null && value.startsWith("ROLE_")) {
+                return value.substring("ROLE_".length());
+            }
+        }
+
+        return null;
     }
 }

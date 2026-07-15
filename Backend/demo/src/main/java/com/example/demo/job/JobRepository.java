@@ -18,10 +18,12 @@ public interface JobRepository extends JpaRepository<Job, UUID> {
     @Query("""
             SELECT j FROM Job j
             WHERE j.status = 'ACTIVE'
-              AND (:keyword IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                                   OR LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%')))
-              AND (:type IS NULL OR j.jobType = :type)
-              AND (:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%')))
+            AND (COALESCE(:keyword, '') = ''
+              OR LOWER(COALESCE(j.title, '')) LIKE LOWER(CONCAT('%', COALESCE(:keyword, ''), '%'))
+              OR LOWER(COALESCE(j.description, '')) LIKE LOWER(CONCAT('%', COALESCE(:keyword, ''), '%')))
+            AND (COALESCE(:type, '') = '' OR j.jobType = :type)
+            AND (COALESCE(:location, '') = ''
+              OR LOWER(COALESCE(j.location, '')) LIKE LOWER(CONCAT('%', COALESCE(:location, ''), '%')))
             ORDER BY j.createdAt DESC
             """)
     Page<Job> search(@Param("keyword") String keyword,

@@ -1,6 +1,7 @@
 package com.example.demo.application;
 
 import com.example.demo.application.dto.ApplicantDto;
+import com.example.demo.application.dto.ApplicationDetailDto;
 import com.example.demo.application.dto.ApplyResponse;
 import com.example.demo.application.dto.MyApplicationDto;
 import org.springframework.http.HttpStatus;
@@ -44,5 +45,12 @@ public class ApplicationController {
     @PreAuthorize("hasRole('HR')")
     public List<ApplicantDto> applicantsForJob(@PathVariable UUID jobId) {
         return applicationService.listForJob(jobId);
+    }
+
+    // --- HR or owning candidate: view one application in full ---
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CANDIDATE', 'HR')")
+    public ApplicationDetailDto getById(@PathVariable UUID id) {
+        return applicationService.getById(id);
     }
 }
