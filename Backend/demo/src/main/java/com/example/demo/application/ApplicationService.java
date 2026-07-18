@@ -1,6 +1,7 @@
 package com.example.demo.application;
 
 import com.example.demo.application.dto.*;
+import com.example.demo.ats.AtsService;
 import com.example.demo.auth.Company;
 import com.example.demo.auth.CompanyRepository;
 import com.example.demo.auth.User;
@@ -24,17 +25,20 @@ public class ApplicationService {
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
     private final ResumeStorageService resumeStorage;
+    private final AtsService atsService;
 
     public ApplicationService(ApplicationRepository applicationRepository,
                               JobRepository jobRepository,
                               UserRepository userRepository,
                               CompanyRepository companyRepository,
-                              ResumeStorageService resumeStorage) {
+                              ResumeStorageService resumeStorage,
+                              AtsService atsService) {
         this.applicationRepository = applicationRepository;
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.resumeStorage = resumeStorage;
+        this.atsService = atsService;
     }
 
     // --- Candidate: apply to a job ---
@@ -59,6 +63,10 @@ public class ApplicationService {
         application.setResumeUrl(resumeUrl);
         application.setCoverLetter(coverLetter);
         application = applicationRepository.save(application);
+
+        // Kick off ATS scoring in the background; the candidate gets an
+        // immediate response and the stage advances once scoring completes.
+        atsService.scoreAsync(application.getId());
 
         return new ApplyResponse(
                 application.getId().toString(),

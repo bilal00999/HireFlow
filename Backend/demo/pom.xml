@@ -105,6 +105,30 @@
         <scope>test</scope>
     </dependency>
 
+    <!-- Jackson for JSON (ObjectMapper) used by the AI/ATS layer -->
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+    </dependency>
+
+    <!-- Resume text extraction: PDF (PDFBox) and DOC/DOCX (Apache POI) -->
+    <dependency>
+        <groupId>org.apache.pdfbox</groupId>
+        <artifactId>pdfbox</artifactId>
+        <version>3.0.3</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-ooxml</artifactId>
+        <version>5.3.0</version>
+    </dependency>
+    <!-- poi-scratchpad provides WordExtractor for legacy .doc files -->
+    <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-scratchpad</artifactId>
+        <version>5.3.0</version>
+    </dependency>
+
 </dependencies>
 
 	<build>

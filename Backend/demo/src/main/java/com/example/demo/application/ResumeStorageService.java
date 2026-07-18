@@ -71,4 +71,21 @@ public class ResumeStorageService {
 
         return "/uploads/resumes/" + filename;
     }
+
+    /**
+     * Resolves a stored resume URL (as returned by {@link #store}) back to its
+     * file on disk. Rejects any path that escapes the resume root.
+     */
+    public Path resolve(String resumeUrl) {
+        String prefix = "/uploads/resumes/";
+        if (resumeUrl == null || !resumeUrl.startsWith(prefix)) {
+            throw new BadRequestException("Invalid resume URL");
+        }
+        String filename = StringUtils.cleanPath(resumeUrl.substring(prefix.length()));
+        Path target = root.resolve(filename).normalize();
+        if (!target.getParent().equals(root)) {
+            throw new BadRequestException("Invalid resume URL");
+        }
+        return target;
+    }
 }
