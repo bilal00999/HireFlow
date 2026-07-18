@@ -153,7 +153,6 @@ class AtsServiceTest {
         existing.setApplicationId(applicationId);
         existing.setScore(99);
         when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(application));
-        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job));
         when(atsResultRepository.existsByApplicationId(applicationId)).thenReturn(true);
         when(atsResultRepository.findByApplicationId(applicationId)).thenReturn(Optional.of(existing));
 
