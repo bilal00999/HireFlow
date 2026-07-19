@@ -1,5 +1,8 @@
 package com.example.demo.job;
 
+import com.example.demo.assessment.AssessmentQuestionService;
+import com.example.demo.assessment.dto.AddQuestionsRequest;
+import com.example.demo.assessment.dto.QuestionDto;
 import com.example.demo.job.dto.*;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -16,9 +19,11 @@ import java.util.UUID;
 public class JobController {
 
     private final JobService jobService;
+    private final AssessmentQuestionService questionService;
 
-    public JobController(JobService jobService) {
+    public JobController(JobService jobService, AssessmentQuestionService questionService) {
         this.jobService = jobService;
+        this.questionService = questionService;
     }
 
     // --- Public: browse active jobs with filters ---
@@ -70,5 +75,21 @@ public class JobController {
     @PreAuthorize("hasRole('HR')")
     public JobDetailDto updateStatus(@PathVariable UUID id, @RequestBody UpdateStatusRequest req) {
         return jobService.updateStatus(id, req.status());
+    }
+
+    // --- HR: append assessment questions to a job ---
+    @PostMapping("/{id}/questions")
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('HR')")
+    public List<QuestionDto> addQuestions(@PathVariable UUID id,
+                                          @Valid @RequestBody AddQuestionsRequest req) {
+        return questionService.addQuestions(id, req);
+    }
+
+    // --- HR: list a job's assessment questions ---
+    @GetMapping("/{id}/questions")
+    @PreAuthorize("hasRole('HR')")
+    public List<QuestionDto> getQuestions(@PathVariable UUID id) {
+        return questionService.listQuestions(id);
     }
 }

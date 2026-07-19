@@ -4,9 +4,17 @@ import com.example.demo.ai.AiClient;
 import com.example.demo.ai.AiUnavailableException;
 import com.example.demo.application.Application;
 import com.example.demo.application.ApplicationRepository;
+import com.example.demo.auth.Company;
+import com.example.demo.auth.CompanyRepository;
+import com.example.demo.auth.User;
+import com.example.demo.auth.UserRepository;
 import com.example.demo.common.ResourceNotFoundException;
+import com.example.demo.email.EmailService;
 import com.example.demo.job.Job;
 import com.example.demo.job.JobRepository;
+import com.example.demo.token.Token;
+import com.example.demo.token.TokenService;
+import com.example.demo.token.TokenType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +22,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +38,9 @@ public class AtsService {
 
     private static final Logger log = LoggerFactory.getLogger(AtsService.class);
 
+    /** Assessment links stay valid for 24 hours (per 08-EMAIL-SYSTEM.md). */
+    private static final Duration ASSESSMENT_TOKEN_TTL = Duration.ofHours(24);
+
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;
     private final AtsResultRepository atsResultRepository;
@@ -36,6 +48,10 @@ public class AtsService {
     private final AtsPromptBuilder promptBuilder;
     private final AiClient aiClient;
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
+    private final TokenService tokenService;
+    private final EmailService emailService;
 
     public AtsService(ApplicationRepository applicationRepository,
                       JobRepository jobRepository,
@@ -43,7 +59,11 @@ public class AtsService {
                       ResumeExtractor resumeExtractor,
                       AtsPromptBuilder promptBuilder,
                       AiClient aiClient,
-                      ObjectMapper objectMapper) {
+                      ObjectMapper objectMapper,
+                      UserRepository userRepository,
+                      CompanyRepository companyRepository,
+                      TokenService tokenService,
+                      EmailService emailService) {
         this.applicationRepository = applicationRepository;
         this.jobRepository = jobRepository;
         this.atsResultRepository = atsResultRepository;
@@ -51,6 +71,10 @@ public class AtsService {
         this.promptBuilder = promptBuilder;
         this.aiClient = aiClient;
         this.objectMapper = objectMapper;
+        this.userRepository = userRepository;
+        this.companyRepository = companyRepository;
+        this.tokenService = tokenService;
+        this.emailService = emailService;
     }
 
     /**
@@ -117,8 +141,47 @@ public class AtsService {
         application.setUpdatedAt(LocalDateTime.now());
         applicationRepository.save(application);
 
+        notifyOutcome(application, job, passed);
+
         log.info("ATS scored application {}: score={} passed={}", applicationId, result.getScore(), passed);
         return result;
+    }
+
+    /**
+     * Notifies the candidate of the ATS outcome. On a pass, issues a single-use
+     * assessment token and emails the link; on a fail, sends a rejection. Email
+     * or token failures are logged but never fail scoring — the persisted stage
+     * is the source of truth and the link can be re-issued.
+     */
+    private void notifyOutcome(Application application, Job job, boolean passed) {
+        try {
+            User candidate = userRepository.findById(application.getUserId()).orElse(null);
+            if (candidate == null) {
+                log.warn("No candidate found for application {}; skipping ATS email",
+                        application.getId());
+                return;
+            }
+            if (passed) {
+                Token token = tokenService.create(
+                        application.getId(), TokenType.ASSESSMENT, ASSESSMENT_TOKEN_TTL);
+                int timeLimit = job.getAssessmentTimeLimit() != null
+                        ? job.getAssessmentTimeLimit() : 30;
+                emailService.sendAssessmentInvite(
+                        candidate.getEmail(), candidate.getFullName(), job.getTitle(),
+                        companyName(job.getCompanyId()), token.getTokenValue(),
+                        token.getExpiresAt(), timeLimit);
+            } else {
+                emailService.sendAtsRejection(
+                        candidate.getEmail(), candidate.getFullName(), job.getTitle());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send ATS outcome notification for application {}",
+                    application.getId(), e);
+        }
+    }
+
+    private String companyName(UUID companyId) {
+        return companyRepository.findById(companyId).map(Company::getName).orElse("the company");
     }
 
     private AtsScore callAndParse(String resumeText, Job job) {

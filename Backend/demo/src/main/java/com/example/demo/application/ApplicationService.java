@@ -9,8 +9,11 @@ import com.example.demo.auth.UserRepository;
 import com.example.demo.common.BadRequestException;
 import com.example.demo.common.ResourceNotFoundException;
 import com.example.demo.common.SecurityUtils;
+import com.example.demo.email.EmailService;
 import com.example.demo.job.Job;
 import com.example.demo.job.JobRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,25 +23,30 @@ import java.util.UUID;
 @Service
 public class ApplicationService {
 
+    private static final Logger log = LoggerFactory.getLogger(ApplicationService.class);
+
     private final ApplicationRepository applicationRepository;
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
     private final ResumeStorageService resumeStorage;
     private final AtsService atsService;
+    private final EmailService emailService;
 
     public ApplicationService(ApplicationRepository applicationRepository,
                               JobRepository jobRepository,
                               UserRepository userRepository,
                               CompanyRepository companyRepository,
                               ResumeStorageService resumeStorage,
-                              AtsService atsService) {
+                              AtsService atsService,
+                              EmailService emailService) {
         this.applicationRepository = applicationRepository;
         this.jobRepository = jobRepository;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.resumeStorage = resumeStorage;
         this.atsService = atsService;
+        this.emailService = emailService;
     }
 
     // --- Candidate: apply to a job ---
@@ -63,6 +71,18 @@ public class ApplicationService {
         application.setResumeUrl(resumeUrl);
         application.setCoverLetter(coverLetter);
         application = applicationRepository.save(application);
+
+        // Confirm receipt by email. Never let a mail hiccup fail the apply.
+        try {
+            User candidate = userRepository.findById(userId).orElse(null);
+            if (candidate != null) {
+                emailService.sendApplicationReceived(
+                        candidate.getEmail(), candidate.getFullName(), job.getTitle());
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send application-received email for application {}",
+                    application.getId(), e);
+        }
 
         // Kick off ATS scoring in the background; the candidate gets an
         // immediate response and the stage advances once scoring completes.
