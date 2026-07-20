@@ -7,6 +7,7 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -61,6 +62,21 @@ public class TokenService {
             return TokenValidation.invalid(TokenStatus.EXPIRED);
         }
         return TokenValidation.valid(token);
+    }
+
+    /**
+     * Looks up a token by value and type, ignoring used/expired status. Returns
+     * empty for a blank value, an unknown value, or a type mismatch. Use this to
+     * resume a stateful flow (e.g. an in-progress interview) whose gating token
+     * was already consumed at start — the flow's own state is the real guard.
+     */
+    @Transactional(readOnly = true)
+    public Optional<Token> findByValueAndType(String tokenValue, TokenType expectedType) {
+        if (tokenValue == null || tokenValue.isBlank()) {
+            return Optional.empty();
+        }
+        return tokenRepository.findByTokenValue(tokenValue)
+                .filter(t -> t.getTokenType().equals(expectedType.name()));
     }
 
     /**

@@ -59,6 +59,12 @@
         <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
+    <!-- Real-time interview transport -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-websocket</artifactId>
+    </dependency>
+
     <!-- Database -->
     <dependency>
         <groupId>org.postgresql</groupId>

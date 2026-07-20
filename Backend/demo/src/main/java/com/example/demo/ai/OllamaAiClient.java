@@ -10,6 +10,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -45,13 +46,30 @@ public class OllamaAiClient implements AiClient {
 
     @Override
     public String complete(String systemPrompt, String userPrompt) {
+        return send(systemPrompt, List.of(new ChatMessage("user", userPrompt)));
+    }
+
+    @Override
+    public String chat(String systemPrompt, List<ChatMessage> history) {
+        return send(systemPrompt, history);
+    }
+
+    /**
+     * Shared request path: prepends the system prompt to the given turns, calls
+     * Ollama with {@code stream:false}, and returns the assembled reply text.
+     */
+    private String send(String systemPrompt, List<ChatMessage> turns) {
         try {
+            List<Map<String, Object>> messages = new ArrayList<>();
+            messages.add(Map.of("role", "system", "content", systemPrompt));
+            for (ChatMessage turn : turns) {
+                messages.add(Map.of("role", turn.role(), "content", turn.content()));
+            }
+
             Map<String, Object> body = Map.of(
                     "model", model,
                     "stream", false,
-                    "messages", List.of(
-                            Map.of("role", "system", "content", systemPrompt),
-                            Map.of("role", "user", "content", userPrompt)));
+                    "messages", messages);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + "/api/chat"))

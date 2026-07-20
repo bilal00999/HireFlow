@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * Builds and sends the candidate-facing emails for the hiring pipeline. Message
@@ -149,5 +150,68 @@ public class EmailService {
                 """.formatted(candidateName, jobTitle, companyName, link,
                 expiresAt.format(EXPIRY_FORMAT), durationMinutes, companyName);
         emailSender.send(new EmailMessage(candidateEmail, subject, body));
+    }
+
+    /**
+     * Email #7 — sent to HR after a candidate completes the AI interview and
+     * clears the full pipeline. Summarizes every stage score plus the interview
+     * report so HR can make a final decision.
+     */
+    public void sendHrCandidateReport(String hrEmail, String candidateName, String candidateEmail,
+                                      String jobTitle, Integer atsScore, Integer assessmentScore,
+                                      int interviewScore, String recommendation,
+                                      String interviewSummary, List<String> strengths,
+                                      List<String> weaknesses) {
+        int ats = atsScore != null ? atsScore : 0;
+        int assessment = assessmentScore != null ? assessmentScore : 0;
+        int overall = Math.round((ats + assessment + interviewScore) / 3.0f);
+
+        String subject = "Candidate Report: " + candidateName + " for " + jobTitle;
+        String body = """
+                A candidate has completed the full automated pipeline for %s.
+
+                CANDIDATE: %s
+                EMAIL: %s
+                JOB: %s
+
+                SCORES:
+                  ATS Resume Score:   %d/100
+                  Assessment Score:   %d/100
+                  AI Interview Score: %d/100
+                  Overall Average:    %d/100
+
+                AI INTERVIEW SUMMARY:
+                %s
+
+                STRENGTHS:
+                %s
+
+                AREAS FOR IMPROVEMENT:
+                %s
+
+                AI RECOMMENDATION: %s
+
+                You can reach out to the candidate directly at %s or log in to
+                HireFlow to send an official decision.
+                """.formatted(jobTitle, candidateName, candidateEmail, jobTitle,
+                ats, assessment, interviewScore, overall,
+                blankToDash(interviewSummary), bulletList(strengths), bulletList(weaknesses),
+                recommendation != null ? recommendation : "N/A", candidateEmail);
+        emailSender.send(new EmailMessage(hrEmail, subject, body));
+    }
+
+    private String bulletList(List<String> items) {
+        if (items == null || items.isEmpty()) {
+            return "  - (none noted)";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String item : items) {
+            sb.append("  - ").append(item).append('\n');
+        }
+        return sb.toString().stripTrailing();
+    }
+
+    private String blankToDash(String s) {
+        return s == null || s.isBlank() ? "(no summary provided)" : s;
     }
 }

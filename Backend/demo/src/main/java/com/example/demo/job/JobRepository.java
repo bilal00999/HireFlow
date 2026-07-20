@@ -33,4 +33,7 @@ public interface JobRepository extends JpaRepository<Job, UUID> {
 
     /** All jobs posted by one company (HR's own listings), newest first. */
     List<Job> findByCompanyIdOrderByCreatedAtDesc(UUID companyId);
+
+    /** Count of a company's jobs in a given status (e.g. ACTIVE) for the HR dashboard. */
+    long countByCompanyIdAndStatus(UUID companyId, String status);
 }

@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/jobs/**").permitAll()
                 .requestMatchers("/api/v1/assessment/**").permitAll()   // token-gated internally
                 .requestMatchers("/api/v1/interview/**").permitAll()    // token-gated internally
+                .requestMatchers("/ws/interview/**").permitAll()        // token-gated in the WS handler
                 .requestMatchers("/api/test").permitAll()
                 .anyRequest().authenticated()
             )
