@@ -43,11 +43,26 @@ api.interceptors.response.use(
 );
 
 /** Pulls a human-readable message out of a backend ErrorResponse, if present. */
-export function apiError(error: unknown, fallback = "Something went wrong"): string {
+export function apiError(
+  error: unknown,
+  fallback = "Something went wrong",
+): string {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.message ?? error.message ?? fallback;
   }
   return fallback;
+}
+
+/**
+ * Builds the interview WebSocket URL for a token. Derives ws/wss + host from the
+ * API base URL so it works in dev (localhost:8080) and prod without extra config.
+ */
+export function interviewSocketUrl(token: string): string {
+  const base = api.defaults.baseURL ?? "http://localhost:8080/api/v1";
+  // Strip the "/api/v1" suffix — the socket lives at the server root (/ws/...).
+  const root = base.replace(/\/api\/v1\/?$/, "");
+  const wsRoot = root.replace(/^http/, "ws");
+  return `${wsRoot}/ws/interview/${token}`;
 }
 
 export default api;

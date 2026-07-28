@@ -34,9 +34,14 @@ export default function Layout() {
             )}
 
             {isHr && (
-              <Link to="/hr/dashboard" className="hover:text-indigo-600">
-                Dashboard
-              </Link>
+              <>
+                <Link to="/hr/dashboard" className="hover:text-indigo-600">
+                  Dashboard
+                </Link>
+                <Link to="/hr/jobs/new" className="hover:text-indigo-600">
+                  Post a job
+                </Link>
+              </>
             )}
 
             {isAuthenticated ? (

@@ -6,21 +6,33 @@ import RegisterPage from "./pages/RegisterPage";
 import JobListPage from "./pages/JobListPage";
 import JobDetailPage from "./pages/JobDetailPage";
 import MyApplicationsPage from "./pages/MyApplicationsPage";
+import HrDashboardPage from "./pages/hr/HrDashboardPage";
+import PipelinePage from "./pages/hr/PipelinePage";
+import CreateJobPage from "./pages/hr/CreateJobPage";
+import AssessmentPage from "./pages/AssessmentPage";
+import InterviewPage from "./pages/InterviewPage";
 
 /**
  * App routes. Public: job browsing + auth. Candidate-only: my applications.
- * Everything else redirects to the job list.
+ * HR-only: dashboard, pipeline, create job. The token-gated assessment and
+ * interview pages sit outside the Layout — candidates reach them from an
+ * emailed link and need no app chrome or login.
  */
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Standalone token-gated flows (no nav shell, no auth) */}
+        <Route path="/assessment/:token" element={<AssessmentPage />} />
+        <Route path="/interview/:token" element={<InterviewPage />} />
+
         <Route element={<Layout />}>
           <Route index element={<JobListPage />} />
           <Route path="jobs" element={<JobListPage />} />
           <Route path="jobs/:id" element={<JobDetailPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
+
           <Route
             path="applications"
             element={
@@ -29,6 +41,32 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="hr/dashboard"
+            element={
+              <ProtectedRoute role="HR">
+                <HrDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="hr/jobs/new"
+            element={
+              <ProtectedRoute role="HR">
+                <CreateJobPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="hr/pipeline/:jobId"
+            element={
+              <ProtectedRoute role="HR">
+                <PipelinePage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
