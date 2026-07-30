@@ -3,7 +3,9 @@ package com.example.demo.application;
 import com.example.demo.application.dto.ApplicantDto;
 import com.example.demo.application.dto.ApplicationDetailDto;
 import com.example.demo.application.dto.ApplyResponse;
+import com.example.demo.application.dto.DecisionRequest;
 import com.example.demo.application.dto.MyApplicationDto;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -52,5 +54,13 @@ public class ApplicationController {
     @PreAuthorize("hasAnyRole('CANDIDATE', 'HR')")
     public ApplicationDetailDto getById(@PathVariable UUID id) {
         return applicationService.getById(id);
+    }
+
+    // --- HR: final hire/reject decision after the interview ---
+    @PostMapping("/{id}/decision")
+    @PreAuthorize("hasRole('HR')")
+    public ApplicationDetailDto decide(@PathVariable UUID id,
+                                       @Valid @RequestBody DecisionRequest request) {
+        return applicationService.decide(id, request);
     }
 }

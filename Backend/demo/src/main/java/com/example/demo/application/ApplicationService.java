@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -130,6 +131,48 @@ public class ApplicationService {
         }
 
         Job job = jobRepository.findById(application.getJobId()).orElse(null);
+        User candidate = userRepository.findById(application.getUserId()).orElse(null);
+        return toDetail(application, job, candidate);
+    }
+
+    // --- HR: final hire/reject decision after the interview ---
+    public ApplicationDetailDto decide(UUID applicationId, DecisionRequest request) {
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+
+        // Only the owning HR account can decide, and only once the candidate has
+        // cleared the full pipeline (reached FINAL).
+        Job job = requireOwnedJob(application.getJobId());
+        if (!"FINAL".equals(application.getStage())) {
+            throw new BadRequestException(
+                    "A decision can only be made once the candidate has reached the final stage");
+        }
+
+        boolean hire = request.decision() == DecisionRequest.Decision.HIRE;
+        application.setStage(hire ? "HIRED" : "REJECTED");
+        if (!hire) {
+            application.setRejectionReason("NOT_SELECTED");
+        }
+        application.setUpdatedAt(LocalDateTime.now());
+        applicationRepository.save(application);
+
+        // Notify the candidate. A mail failure must not roll back the decision.
+        try {
+            User candidate = userRepository.findById(application.getUserId()).orElse(null);
+            if (candidate != null) {
+                String company = companyName(job.getCompanyId());
+                if (hire) {
+                    emailService.sendOffer(candidate.getEmail(), candidate.getFullName(),
+                            job.getTitle(), company, request.note());
+                } else {
+                    emailService.sendFinalRejection(candidate.getEmail(), candidate.getFullName(),
+                            job.getTitle(), company, request.note());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to send decision email for application {}", applicationId, e);
+        }
+
         User candidate = userRepository.findById(application.getUserId()).orElse(null);
         return toDetail(application, job, candidate);
     }
