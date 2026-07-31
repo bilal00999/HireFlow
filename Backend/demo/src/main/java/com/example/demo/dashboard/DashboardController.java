@@ -1,5 +1,6 @@
 package com.example.demo.dashboard;
 
+import com.example.demo.dashboard.dto.CandidateDetailDto;
 import com.example.demo.dashboard.dto.DashboardStatsDto;
 import com.example.demo.dashboard.dto.PipelineDto;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,5 +37,12 @@ public class DashboardController {
     @PreAuthorize("hasRole('HR')")
     public PipelineDto pipeline(@PathVariable UUID jobId) {
         return dashboardService.pipeline(jobId);
+    }
+
+    // --- Full scorecard + interview transcript for one candidate ---
+    @GetMapping("/candidate/{applicationId}")
+    @PreAuthorize("hasRole('HR')")
+    public CandidateDetailDto candidate(@PathVariable UUID applicationId) {
+        return dashboardService.candidateDetail(applicationId);
     }
 }
