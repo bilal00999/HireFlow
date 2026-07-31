@@ -67,6 +67,14 @@
         <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
 
+    <!-- Loads a .env file into Spring's Environment so ${DB_URL} etc. resolve
+         from it when running via mvnw (Spring doesn't read .env on its own). -->
+    <dependency>
+        <groupId>me.paulschwarz</groupId>
+        <artifactId>spring-dotenv</artifactId>
+        <version>4.0.0</version>
+    </dependency>
+
     <!-- Real-time interview transport -->
     <dependency>
         <groupId>org.springframework.boot</groupId>
