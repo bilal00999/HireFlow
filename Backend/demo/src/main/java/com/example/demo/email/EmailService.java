@@ -200,6 +200,61 @@ public class EmailService {
         emailSender.send(new EmailMessage(hrEmail, subject, body));
     }
 
+    /**
+     * Email #8 — sent to the candidate when HR makes a HIRE decision after the
+     * interview. Carries next-steps and an optional personal note from HR.
+     */
+    public void sendOffer(String candidateEmail, String candidateName, String jobTitle,
+                          String companyName, String note) {
+        String subject = "Great news about your application for " + jobTitle + "!";
+        String body = """
+                Hi %s,
+
+                Congratulations! After reviewing every stage of your application for
+                the %s position at %s, we'd like to move forward with you.
+                %s
+                Someone from our team will be in touch shortly with the details and
+                next steps. We're excited about the possibility of you joining us.
+
+                Warm regards,
+                The %s Hiring Team
+                """.formatted(candidateName, jobTitle, companyName,
+                noteBlock(note), companyName);
+        emailSender.send(new EmailMessage(candidateEmail, subject, body));
+    }
+
+    /**
+     * Email #9 — sent to the candidate when HR declines after the interview.
+     * Warmer than the automated stage rejections since they reached the final round.
+     */
+    public void sendFinalRejection(String candidateEmail, String candidateName, String jobTitle,
+                                   String companyName, String note) {
+        String subject = "Application update for " + jobTitle;
+        String body = """
+                Hi %s,
+
+                Thank you for taking the time to complete the full interview process
+                for the %s position at %s. It was a close decision, and we were
+                genuinely impressed by your candidacy.
+
+                After careful consideration, we've decided not to extend an offer at
+                this time.
+                %s
+                We'd welcome an application from you for future roles, and we wish you
+                every success in your search.
+
+                Sincerely,
+                The %s Hiring Team
+                """.formatted(candidateName, jobTitle, companyName,
+                noteBlock(note), companyName);
+        emailSender.send(new EmailMessage(candidateEmail, subject, body));
+    }
+
+    /** Renders an optional HR note as its own paragraph, or nothing when blank. */
+    private String noteBlock(String note) {
+        return note == null || note.isBlank() ? "" : "\n" + note.strip() + "\n";
+    }
+
     private String bulletList(List<String> items) {
         if (items == null || items.isEmpty()) {
             return "  - (none noted)";
