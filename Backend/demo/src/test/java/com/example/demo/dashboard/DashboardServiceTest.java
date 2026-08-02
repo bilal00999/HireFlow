@@ -43,6 +43,11 @@ class DashboardServiceTest {
     @Mock JobRepository jobRepository;
     @Mock ApplicationRepository applicationRepository;
     @Mock ApplicationService applicationService;
+    @Mock com.example.demo.auth.UserRepository userRepository;
+    @Mock com.example.demo.ats.AtsResultRepository atsResultRepository;
+    @Mock com.example.demo.assessment.AssessmentAttemptRepository assessmentAttemptRepository;
+    @Mock com.example.demo.interview.InterviewSessionRepository interviewSessionRepository;
+    @Mock com.example.demo.interview.InterviewMessageRepository interviewMessageRepository;
 
     DashboardService service;
 
@@ -51,7 +56,9 @@ class DashboardServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new DashboardService(jobRepository, applicationRepository, applicationService);
+        service = new DashboardService(jobRepository, applicationRepository, applicationService,
+                userRepository, atsResultRepository, assessmentAttemptRepository,
+                interviewSessionRepository, interviewMessageRepository, new com.fasterxml.jackson.databind.ObjectMapper());
         companyId = UUID.randomUUID();
         jobId = UUID.randomUUID();
         authenticateAs(companyId, "HR");
@@ -146,6 +153,81 @@ class DashboardServiceTest {
         when(jobRepository.findById(jobId)).thenReturn(Optional.of(job(otherCompany)));
 
         assertThatThrownBy(() -> service.pipeline(jobId))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("your own jobs");
+    }
+
+    @Test
+    void candidateDetail_ownedApplication_assemblesScorecard() {
+        UUID applicationId = UUID.randomUUID();
+        UUID candidateId = UUID.randomUUID();
+
+        var application = new com.example.demo.application.Application();
+        application.setId(applicationId);
+        application.setJobId(jobId);
+        application.setUserId(candidateId);
+        application.setStage("FINAL");
+        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(application));
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job(companyId)));
+
+        var candidate = new com.example.demo.auth.User();
+        candidate.setFullName("Casey Candidate");
+        candidate.setEmail("casey@example.com");
+        when(userRepository.findById(candidateId)).thenReturn(Optional.of(candidate));
+
+        var ats = new com.example.demo.ats.AtsResult();
+        ats.setScore(75);
+        ats.setPassed(true);
+        ats.setAiSummary("Strong match.");
+        when(atsResultRepository.findByApplicationId(applicationId)).thenReturn(Optional.of(ats));
+
+        var attempt = new com.example.demo.assessment.AssessmentAttempt();
+        attempt.setScore(88);
+        when(assessmentAttemptRepository.findByApplicationId(applicationId))
+                .thenReturn(Optional.of(attempt));
+
+        var session = new com.example.demo.interview.InterviewSession();
+        session.setId(UUID.randomUUID());
+        session.setApplicationId(applicationId);
+        session.setOverallScore(82);
+        session.setPassed(true);
+        session.setAiReport("{\"type\":\"INTERVIEW_COMPLETE\",\"overall_score\":82,"
+                + "\"recommendation\":\"HIRE\",\"summary\":\"Great.\","
+                + "\"strengths\":[\"clear\"],\"weaknesses\":[\"terse\"]}");
+        when(interviewSessionRepository.findByApplicationId(applicationId))
+                .thenReturn(Optional.of(session));
+
+        var q = new com.example.demo.interview.InterviewMessage();
+        q.setRole("ai"); q.setContent("Q1"); q.setOrderIndex(0);
+        var a = new com.example.demo.interview.InterviewMessage();
+        a.setRole("candidate"); a.setContent("A1"); a.setOrderIndex(1);
+        when(interviewMessageRepository.findBySessionIdOrderByOrderIndexAsc(session.getId()))
+                .thenReturn(List.of(q, a));
+
+        var dto = service.candidateDetail(applicationId);
+
+        assertThat(dto.candidateName()).isEqualTo("Casey Candidate");
+        assertThat(dto.stage()).isEqualTo("FINAL");
+        assertThat(dto.ats().score()).isEqualTo(75);
+        assertThat(dto.assessmentScore()).isEqualTo(88);
+        assertThat(dto.interview().score()).isEqualTo(82);
+        assertThat(dto.interview().recommendation()).isEqualTo("HIRE");
+        assertThat(dto.interview().strengths()).containsExactly("clear");
+        assertThat(dto.transcript()).hasSize(2);
+        assertThat(dto.transcript().get(0).role()).isEqualTo("ai");
+    }
+
+    @Test
+    void candidateDetail_foreignCompanyJob_rejected() {
+        UUID applicationId = UUID.randomUUID();
+        var application = new com.example.demo.application.Application();
+        application.setId(applicationId);
+        application.setJobId(jobId);
+        application.setUserId(UUID.randomUUID());
+        when(applicationRepository.findById(applicationId)).thenReturn(Optional.of(application));
+        when(jobRepository.findById(jobId)).thenReturn(Optional.of(job(UUID.randomUUID())));
+
+        assertThatThrownBy(() -> service.candidateDetail(applicationId))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("your own jobs");
     }
