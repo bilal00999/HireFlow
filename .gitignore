@@ -3,6 +3,7 @@
 .env.local
 *.env
 
+node_modules
 
 # --- Backend (Maven) ---
 Backend/demo/target/
