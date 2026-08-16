@@ -15,8 +15,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Path alias for shadcn/ui */
-    "baseUrl": ".",
+    /* Path alias for shadcn/ui (baseUrl-free; resolves against this file) */
     "paths": {
       "@/*": ["./src/*"]
     },

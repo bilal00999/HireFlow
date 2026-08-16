@@ -87,8 +87,13 @@ export default function PipelinePage() {
 }
 
 function ApplicantCard({ applicant }: { applicant: Applicant }) {
+  // The whole card opens the candidate's scorecard; the resume link stops
+  // propagation so it opens the PDF instead of navigating.
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
+    <Link
+      to={`/hr/candidate/${applicant.id}`}
+      className="block rounded-lg border border-slate-200 bg-white p-3 shadow-sm hover:border-indigo-300 hover:shadow"
+    >
       <div className="font-medium text-slate-900">{applicant.candidateName}</div>
       <div className="truncate text-xs text-slate-500">{applicant.candidateEmail}</div>
       {applicant.stage === "REJECTED" && applicant.rejectionReason && (
@@ -101,11 +106,12 @@ function ApplicantCard({ applicant }: { applicant: Applicant }) {
           href={applicant.resumeUrl}
           target="_blank"
           rel="noreferrer"
+          onClick={(e) => e.stopPropagation()}
           className="mt-2 inline-block text-xs font-medium text-indigo-600 hover:underline"
         >
           View resume
         </a>
       )}
-    </div>
+    </Link>
   );
 }

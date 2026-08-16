@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Toaster } from "@/components/ui/sonner";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import JobListPage from "./pages/JobListPage";
@@ -8,6 +9,7 @@ import JobDetailPage from "./pages/JobDetailPage";
 import MyApplicationsPage from "./pages/MyApplicationsPage";
 import HrDashboardPage from "./pages/hr/HrDashboardPage";
 import PipelinePage from "./pages/hr/PipelinePage";
+import CandidateDetailPage from "./pages/hr/CandidateDetailPage";
 import CreateJobPage from "./pages/hr/CreateJobPage";
 import AssessmentPage from "./pages/AssessmentPage";
 import InterviewPage from "./pages/InterviewPage";
@@ -21,6 +23,7 @@ import InterviewPage from "./pages/InterviewPage";
 function App() {
   return (
     <BrowserRouter>
+      <Toaster />
       <Routes>
         {/* Standalone token-gated flows (no nav shell, no auth) */}
         <Route path="/assessment/:token" element={<AssessmentPage />} />
@@ -63,6 +66,14 @@ function App() {
             element={
               <ProtectedRoute role="HR">
                 <PipelinePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="hr/candidate/:applicationId"
+            element={
+              <ProtectedRoute role="HR">
+                <CandidateDetailPage />
               </ProtectedRoute>
             }
           />

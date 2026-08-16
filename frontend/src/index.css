@@ -1,1 +1,115 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* Force dark: the app is dark-only (class="dark" on <html>). */
+@custom-variant dark (&:is(.dark *));
+
+/* Map design tokens (CSS vars below) into Tailwind's theme so utilities like
+   bg-background, text-foreground, border-border resolve. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-border: var(--sidebar-border);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* Dark-blue design tokens. The app is dark-only, so :root and .dark carry the
+   same values (keeps shadcn components — which key off .dark — correct, and
+   works even if the class is ever dropped). Colors are oklch. */
+:root,
+.dark {
+  --radius: 0.75rem;
+
+  /* Deep slate-950 canvas, near-white text */
+  --background: oklch(0.16 0.02 258);
+  --foreground: oklch(0.98 0.005 250);
+
+  /* Glass-ish raised surfaces sit slightly lighter than the canvas */
+  --card: oklch(0.21 0.025 260);
+  --card-foreground: oklch(0.98 0.005 250);
+  --popover: oklch(0.19 0.025 260);
+  --popover-foreground: oklch(0.98 0.005 250);
+
+  /* Blue/indigo brand primary */
+  --primary: oklch(0.62 0.19 264);
+  --primary-foreground: oklch(0.98 0.01 250);
+
+  --secondary: oklch(0.27 0.03 260);
+  --secondary-foreground: oklch(0.98 0.005 250);
+  --muted: oklch(0.27 0.03 260);
+  --muted-foreground: oklch(0.70 0.02 258);
+  --accent: oklch(0.30 0.05 264);
+  --accent-foreground: oklch(0.98 0.005 250);
+
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.98 0.01 250);
+
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.62 0.19 264);
+
+  /* Sidebar surface (a touch deeper than cards) */
+  --sidebar: oklch(0.18 0.025 260);
+  --sidebar-foreground: oklch(0.96 0.005 250);
+  --sidebar-primary: oklch(0.62 0.19 264);
+  --sidebar-accent: oklch(0.30 0.05 264);
+  --sidebar-border: oklch(1 0 0 / 8%);
+
+  /* Brand gradients + glass, referenced by utilities in components */
+  --gradient-brand: linear-gradient(135deg, oklch(0.62 0.19 264), oklch(0.68 0.16 230));
+  --gradient-hero: radial-gradient(60% 80% at 20% 10%, oklch(0.4 0.15 264 / 45%), transparent 60%),
+    radial-gradient(50% 60% at 90% 20%, oklch(0.5 0.14 220 / 35%), transparent 55%);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  /* Themed scrollbars so the dark UI stays cohesive */
+  * {
+    scrollbar-color: var(--color-muted) transparent;
+  }
+}
+
+/* Reusable brand helpers (utility compositions, not component CSS) */
+@utility glass {
+  background-color: oklch(1 0 0 / 5%);
+  backdrop-filter: blur(16px);
+  border: 1px solid oklch(1 0 0 / 10%);
+}
+@utility text-gradient {
+  background-image: var(--gradient-brand);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
