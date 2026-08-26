@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { PlusCircle, Briefcase } from "lucide-react";
 import api, { apiError } from "../../api/client";
 import type { DashboardStats, JobSummary } from "../../api/types";
+import { GlassCard } from "@/components/ui/glass-card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * HR landing page: company-wide funnel stats plus the HR's own jobs, each
@@ -28,16 +34,18 @@ export default function HrDashboardPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <Link
-          to="/hr/jobs/new"
-          className="rounded-md bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-700"
-        >
-          Post a job
-        </Link>
+        <Button asChild variant="gradient">
+          <Link to="/hr/jobs/new">
+            <PlusCircle className="size-4" />
+            Post a job
+          </Link>
+        </Button>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-4 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
       )}
 
       <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
@@ -49,53 +57,71 @@ export default function HrDashboardPage() {
       </div>
 
       <h2 className="mb-3 text-lg font-semibold">Your jobs</h2>
-      {jobs === null && <p className="text-slate-500">Loading…</p>}
+      {jobs === null && (
+        <div className="space-y-3">
+          {[0, 1].map((i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-2xl" />
+          ))}
+        </div>
+      )}
       {jobs?.length === 0 && (
-        <p className="text-slate-500">No jobs yet. Post one to start hiring.</p>
+        <GlassCard hover={false} className="py-12 text-center">
+          <Briefcase className="mx-auto mb-3 size-8 text-muted-foreground" />
+          <p className="text-muted-foreground">No jobs yet. Post one to start hiring.</p>
+        </GlassCard>
       )}
       <ul className="space-y-3">
-        {jobs?.map((job) => (
-          <li key={job.id}>
-            <Link
-              to={`/hr/pipeline/${job.id}`}
-              className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4 hover:border-indigo-300 hover:shadow-sm"
-            >
-              <div>
-                <span className="font-semibold text-slate-900">{job.title}</span>
-                {job.location && <span className="ml-3 text-sm text-slate-500">{job.location}</span>}
-              </div>
-              <StatusPill status={job.status} />
+        {jobs?.map((job, i) => (
+          <motion.li
+            key={job.id}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: Math.min(i * 0.04, 0.3) }}
+          >
+            <Link to={`/hr/pipeline/${job.id}`} className="block">
+              <GlassCard className="flex items-center justify-between p-4">
+                <div>
+                  <span className="font-semibold">{job.title}</span>
+                  {job.location && (
+                    <span className="ml-3 text-sm text-muted-foreground">
+                      {job.location}
+                    </span>
+                  )}
+                </div>
+                <StatusPill status={job.status} />
+              </GlassCard>
             </Link>
-          </li>
+          </motion.li>
         ))}
       </ul>
     </div>
   );
 }
 
-function StatCard({ label, value, highlight }: { label: string; value?: number; highlight?: boolean }) {
+function StatCard({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value?: number;
+  highlight?: boolean;
+}) {
   return (
-    <div
-      className={`rounded-lg border p-4 ${
-        highlight ? "border-green-200 bg-green-50" : "border-slate-200 bg-white"
-      }`}
+    <GlassCard
+      hover={false}
+      className={`p-4 ${highlight ? "bg-primary/5 ring-1 ring-primary/20" : ""}`}
     >
-      <div className="text-2xl font-bold text-slate-900">{value ?? "—"}</div>
-      <div className="mt-1 text-xs text-slate-500">{label}</div>
-    </div>
+      <div className={`text-2xl font-bold ${highlight ? "text-primary" : ""}`}>
+        {value ?? "—"}
+      </div>
+      <div className="mt-1 text-xs text-muted-foreground">{label}</div>
+    </GlassCard>
   );
 }
 
 function StatusPill({ status }: { status: string }) {
-  const style =
-    status === "ACTIVE"
-      ? "bg-green-100 text-green-700"
-      : status === "DRAFT"
-        ? "bg-slate-100 text-slate-600"
-        : "bg-amber-100 text-amber-700";
-  return (
-    <span className={`rounded-full px-3 py-1 text-xs font-medium ${style}`}>
-      {status.toLowerCase()}
-    </span>
-  );
+  const variant =
+    status === "ACTIVE" ? "success" : status === "DRAFT" ? "muted" : "warning";
+  return <Badge variant={variant}>{status.toLowerCase()}</Badge>;
 }

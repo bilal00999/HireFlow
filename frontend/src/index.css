@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Force dark: the app is dark-only (class="dark" on <html>). */
+/* The app runs a single light theme. Keep the `dark` custom-variant defined so
+   any stray `dark:` utility still compiles, but no `.dark` class is applied. */
 @custom-variant dark (&:is(.dark *));
 
 /* Map design tokens (CSS vars below) into Tailwind's theme so utilities like
@@ -31,58 +32,68 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-border: var(--sidebar-border);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: calc(var(--radius) - 2px);
+  --radius-xl: var(--radius);
+  --radius-2xl: calc(var(--radius) + 4px);
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Dark-blue design tokens. The app is dark-only, so :root and .dark carry the
-   same values (keeps shadcn components — which key off .dark — correct, and
-   works even if the class is ever dropped). Colors are oklch. */
+/* Light "clinic dashboard" design tokens, inspired by the reference:
+   an airy lavender-gray canvas, crisp white surfaces, and a royal-blue brand.
+   The app is single-theme, so :root and .dark carry the same light values
+   (keeps shadcn components — which historically key off .dark — correct even
+   if the class is ever re-added). Colors are oklch. */
 :root,
 .dark {
-  --radius: 0.75rem;
+  --radius: 1rem;
 
-  /* Deep slate-950 canvas, near-white text */
-  --background: oklch(0.16 0.02 258);
-  --foreground: oklch(0.98 0.005 250);
+  /* Airy lavender-gray canvas, deep slate-navy ink */
+  --background: oklch(0.968 0.007 264);
+  --foreground: oklch(0.29 0.035 264);
 
-  /* Glass-ish raised surfaces sit slightly lighter than the canvas */
-  --card: oklch(0.21 0.025 260);
-  --card-foreground: oklch(0.98 0.005 250);
-  --popover: oklch(0.19 0.025 260);
-  --popover-foreground: oklch(0.98 0.005 250);
+  /* Crisp white raised surfaces */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.29 0.035 264);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.29 0.035 264);
 
-  /* Blue/indigo brand primary */
-  --primary: oklch(0.62 0.19 264);
-  --primary-foreground: oklch(0.98 0.01 250);
+  /* Royal-blue brand primary */
+  --primary: oklch(0.55 0.223 264);
+  --primary-foreground: oklch(0.99 0.01 264);
 
-  --secondary: oklch(0.27 0.03 260);
-  --secondary-foreground: oklch(0.98 0.005 250);
-  --muted: oklch(0.27 0.03 260);
-  --muted-foreground: oklch(0.70 0.02 258);
-  --accent: oklch(0.30 0.05 264);
-  --accent-foreground: oklch(0.98 0.005 250);
+  /* Soft blue-tinted neutrals */
+  --secondary: oklch(0.955 0.012 264);
+  --secondary-foreground: oklch(0.37 0.06 264);
+  --muted: oklch(0.966 0.008 264);
+  --muted-foreground: oklch(0.556 0.028 264);
+  --accent: oklch(0.945 0.032 264);
+  --accent-foreground: oklch(0.46 0.16 264);
 
-  --destructive: oklch(0.58 0.22 25);
-  --destructive-foreground: oklch(0.98 0.01 250);
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(0.99 0.01 25);
 
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.62 0.19 264);
+  --border: oklch(0.918 0.012 264);
+  --input: oklch(0.9 0.014 264);
+  --ring: oklch(0.55 0.223 264);
 
-  /* Sidebar surface (a touch deeper than cards) */
-  --sidebar: oklch(0.18 0.025 260);
-  --sidebar-foreground: oklch(0.96 0.005 250);
-  --sidebar-primary: oklch(0.62 0.19 264);
-  --sidebar-accent: oklch(0.30 0.05 264);
-  --sidebar-border: oklch(1 0 0 / 8%);
+  /* White sidebar surface */
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.29 0.035 264);
+  --sidebar-primary: oklch(0.55 0.223 264);
+  --sidebar-accent: oklch(0.945 0.032 264);
+  --sidebar-border: oklch(0.918 0.012 264);
 
-  /* Brand gradients + glass, referenced by utilities in components */
-  --gradient-brand: linear-gradient(135deg, oklch(0.62 0.19 264), oklch(0.68 0.16 230));
-  --gradient-hero: radial-gradient(60% 80% at 20% 10%, oklch(0.4 0.15 264 / 45%), transparent 60%),
-    radial-gradient(50% 60% at 90% 20%, oklch(0.5 0.14 220 / 35%), transparent 55%);
+  /* Brand gradients referenced by utilities/components */
+  --gradient-brand: linear-gradient(135deg, oklch(0.58 0.21 262), oklch(0.52 0.2 280));
+  --gradient-hero: radial-gradient(55% 75% at 12% 8%, oklch(0.72 0.13 264 / 16%), transparent 60%),
+    radial-gradient(45% 55% at 92% 6%, oklch(0.74 0.11 232 / 12%), transparent 55%);
+
+  /* Soft, layered card shadow used across surfaces */
+  --shadow-card: 0 1px 2px oklch(0.4 0.05 264 / 5%), 0 8px 24px -14px oklch(0.4 0.08 264 / 22%);
+  --shadow-card-hover: 0 2px 6px oklch(0.4 0.05 264 / 7%), 0 18px 40px -18px oklch(0.4 0.1 264 / 30%);
 }
 
 @layer base {
@@ -92,19 +103,23 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11" 1, "ss01" 1, "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
-  /* Themed scrollbars so the dark UI stays cohesive */
+  /* Themed scrollbars so the light UI stays cohesive */
   * {
-    scrollbar-color: var(--color-muted) transparent;
+    scrollbar-color: var(--color-border) transparent;
   }
 }
 
 /* Reusable brand helpers (utility compositions, not component CSS) */
 @utility glass {
-  background-color: oklch(1 0 0 / 5%);
+  background-color: oklch(1 0 0 / 72%);
   backdrop-filter: blur(16px);
-  border: 1px solid oklch(1 0 0 / 10%);
+  border: 1px solid oklch(1 0 0 / 60%);
+  box-shadow: var(--shadow-card);
 }
 @utility text-gradient {
   background-image: var(--gradient-brand);
@@ -112,4 +127,9 @@
   -webkit-background-clip: text;
   color: transparent;
 }
-
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+@utility shadow-card-hover {
+  box-shadow: var(--shadow-card-hover);
+}

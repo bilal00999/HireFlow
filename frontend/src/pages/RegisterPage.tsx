@@ -95,7 +95,7 @@ export default function RegisterPage() {
         </Tabs>
 
         {error && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-700">
             <AlertCircle className="size-4 shrink-0" />
             {error}
           </div>

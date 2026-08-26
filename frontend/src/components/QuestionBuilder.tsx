@@ -1,4 +1,8 @@
 import type { QuestionInput } from "../api/types";
+import { GlassCard } from "@/components/ui/glass-card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 /**
  * Editable list of assessment questions. MCQ questions expose four option
@@ -32,26 +36,26 @@ export default function QuestionBuilder({
   return (
     <div className="space-y-4">
       {questions.map((q, i) => (
-        <div key={i} className="rounded-lg border border-slate-200 bg-white p-4">
+        <GlassCard key={i} hover={false} className="p-4">
           <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {q.questionType === "MCQ" ? "Multiple choice" : "Free text"} · Q{i + 1}
             </span>
             <button
               type="button"
               onClick={() => remove(i)}
-              className="text-xs font-medium text-red-500 hover:underline"
+              className="text-xs font-medium text-red-600 hover:underline"
             >
               Remove
             </button>
           </div>
 
-          <textarea
+          <Textarea
             rows={2}
             value={q.questionText}
             onChange={(e) => update(i, { questionText: e.target.value })}
             placeholder="Question prompt"
-            className="mb-3 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mb-3"
           />
 
           {q.questionType === "MCQ" && (
@@ -63,8 +67,9 @@ export default function QuestionBuilder({
                     name={`correct-${i}`}
                     checked={q.correctOption === oi}
                     onChange={() => update(i, { correctOption: oi })}
+                    className="size-4 accent-primary"
                   />
-                  <input
+                  <Input
                     value={opt}
                     onChange={(e) => {
                       const options = [...(q.options ?? [])];
@@ -72,41 +77,35 @@ export default function QuestionBuilder({
                       update(i, { options });
                     }}
                     placeholder={`Option ${oi + 1}`}
-                    className="flex-1 rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+                    className="h-9 flex-1"
                   />
                 </label>
               ))}
-              <p className="text-xs text-slate-400">Select the radio next to the correct answer.</p>
+              <p className="text-xs text-muted-foreground">
+                Select the radio next to the correct answer.
+              </p>
             </div>
           )}
 
-          <div className="mt-3 w-32">
-            <label className="block text-xs font-medium text-slate-500">Max score</label>
-            <input
+          <div className="mt-3 w-32 space-y-1">
+            <label className="block text-xs font-medium text-muted-foreground">Max score</label>
+            <Input
               type="number"
               value={q.maxScore ?? ""}
               onChange={(e) => update(i, { maxScore: parseInt(e.target.value, 10) || undefined })}
-              className="mt-1 w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm"
+              className="h-9"
             />
           </div>
-        </div>
+        </GlassCard>
       ))}
 
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={() => addQuestion("MCQ")}
-          className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium hover:bg-slate-200"
-        >
+        <Button type="button" variant="secondary" onClick={() => addQuestion("MCQ")}>
           + Multiple choice
-        </button>
-        <button
-          type="button"
-          onClick={() => addQuestion("TEXT")}
-          className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium hover:bg-slate-200"
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={() => addQuestion("TEXT")}>
           + Free text
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import api, { apiError } from "../api/client";
 import type { MyApplication } from "../api/types";
+import { GlassCard } from "@/components/ui/glass-card";
+import { StageBadge } from "@/components/StageBadge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Candidate view of their own applications with the current pipeline stage.
@@ -19,18 +23,28 @@ export default function MyApplicationsPage() {
   }, []);
 
   if (error) {
-    return <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>;
+    return (
+      <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-700">
+        {error}
+      </div>
+    );
   }
 
   if (!apps) {
-    return <p className="text-slate-500">Loading…</p>;
+    return (
+      <div className="space-y-3">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+        ))}
+      </div>
+    );
   }
 
   if (apps.length === 0) {
     return (
-      <div className="text-center text-slate-500">
+      <div className="py-16 text-center text-muted-foreground">
         <p className="mb-4">You haven't applied to any jobs yet.</p>
-        <Link to="/jobs" className="font-medium text-indigo-600 hover:underline">
+        <Link to="/jobs" className="font-medium text-primary hover:underline">
           Browse jobs
         </Link>
       </div>
@@ -41,52 +55,38 @@ export default function MyApplicationsPage() {
     <div>
       <h1 className="mb-6 text-2xl font-bold">My Applications</h1>
       <ul className="space-y-3">
-        {apps.map((app) => (
-          <li
+        {apps.map((app, i) => (
+          <motion.li
             key={app.id}
-            className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-4"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: Math.min(i * 0.04, 0.3) }}
           >
-            <div>
-              <Link
-                to={`/jobs/${app.job.id}`}
-                className="font-semibold text-indigo-600 hover:underline"
-              >
-                {app.job.title}
-              </Link>
-              <p className="text-sm text-slate-500">{app.job.company}</p>
-              <p className="mt-1 text-xs text-slate-400">
-                Applied {new Date(app.appliedAt).toLocaleDateString()}
-              </p>
-            </div>
-            <StageBadge stage={app.stage} reason={app.rejectionReason} />
-          </li>
+            <GlassCard className="flex items-center justify-between gap-4 p-4">
+              <div className="min-w-0">
+                <Link
+                  to={`/jobs/${app.job.id}`}
+                  className="font-semibold text-primary hover:underline"
+                >
+                  {app.job.title}
+                </Link>
+                <p className="text-sm text-muted-foreground">{app.job.company}</p>
+                <p className="mt-1 text-xs text-muted-foreground/80">
+                  Applied {new Date(app.appliedAt).toLocaleDateString()}
+                </p>
+              </div>
+              <div className="text-right">
+                <StageBadge stage={app.stage} />
+                {app.stage === "REJECTED" && app.rejectionReason && (
+                  <p className="mt-1 text-xs text-muted-foreground/80">
+                    {app.rejectionReason.replace(/_/g, " ").toLowerCase()}
+                  </p>
+                )}
+              </div>
+            </GlassCard>
+          </motion.li>
         ))}
       </ul>
-    </div>
-  );
-}
-
-const STAGE_STYLES: Record<string, string> = {
-  APPLIED: "bg-slate-100 text-slate-700",
-  ATS_REVIEW: "bg-blue-100 text-blue-700",
-  ASSESSMENT: "bg-amber-100 text-amber-700",
-  INTERVIEW: "bg-purple-100 text-purple-700",
-  FINAL: "bg-green-100 text-green-700",
-  REJECTED: "bg-red-100 text-red-700",
-  MANUAL_REVIEW: "bg-orange-100 text-orange-700",
-};
-
-function StageBadge({ stage, reason }: { stage: string; reason: string | null }) {
-  const style = STAGE_STYLES[stage] ?? "bg-slate-100 text-slate-700";
-  const label = stage.replace(/_/g, " ");
-  return (
-    <div className="text-right">
-      <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${style}`}>
-        {label}
-      </span>
-      {stage === "REJECTED" && reason && (
-        <p className="mt-1 text-xs text-slate-400">{reason.replace(/_/g, " ").toLowerCase()}</p>
-      )}
     </div>
   );
 }

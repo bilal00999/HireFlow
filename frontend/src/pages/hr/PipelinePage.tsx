@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import api, { apiError } from "../../api/client";
 import type { Applicant, Pipeline } from "../../api/types";
+import { GlassCard } from "@/components/ui/glass-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Column order for the kanban board — matches the backend pipeline stages.
 const STAGE_ORDER = [
@@ -38,8 +41,23 @@ export default function PipelinePage() {
       .catch((err) => setError(apiError(err, "Could not load pipeline")));
   }, [jobId]);
 
-  if (error) return <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>;
-  if (!pipeline) return <p className="text-slate-500">Loading…</p>;
+  if (error)
+    return (
+      <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-700">
+        {error}
+      </div>
+    );
+  if (!pipeline)
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-64" />
+        <div className="flex gap-4">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-64 w-64 shrink-0 rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    );
 
   // Group candidates by stage once, rather than filtering per column.
   const byStage = new Map<string, Applicant[]>();
@@ -57,20 +75,28 @@ export default function PipelinePage() {
   return (
     <div>
       <div className="mb-6">
-        <Link to="/hr/dashboard" className="text-sm text-indigo-600 hover:underline">
-          ← Dashboard
+        <Link
+          to="/hr/dashboard"
+          className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+        >
+          <ArrowLeft className="size-4" />
+          Dashboard
         </Link>
         <h1 className="mt-2 text-2xl font-bold">{pipeline.jobTitle}</h1>
-        <p className="text-sm text-slate-500">{pipeline.candidates.length} applicants</p>
+        <p className="text-sm text-muted-foreground">
+          {pipeline.candidates.length} applicants
+        </p>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {columns.length === 0 && <p className="text-slate-500">No applicants yet.</p>}
+        {columns.length === 0 && (
+          <p className="text-muted-foreground">No applicants yet.</p>
+        )}
         {columns.map((stage) => (
           <div key={stage} className="w-64 shrink-0">
             <div className="mb-2 flex items-center justify-between px-1">
-              <h2 className="text-sm font-semibold text-slate-700">{STAGE_LABELS[stage]}</h2>
-              <span className="rounded-full bg-slate-200 px-2 text-xs text-slate-600">
+              <h2 className="text-sm font-semibold">{STAGE_LABELS[stage]}</h2>
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-muted-foreground">
                 {pipeline.stages[stage] ?? 0}
               </span>
             </div>
@@ -90,28 +116,29 @@ function ApplicantCard({ applicant }: { applicant: Applicant }) {
   // The whole card opens the candidate's scorecard; the resume link stops
   // propagation so it opens the PDF instead of navigating.
   return (
-    <Link
-      to={`/hr/candidate/${applicant.id}`}
-      className="block rounded-lg border border-slate-200 bg-white p-3 shadow-sm hover:border-indigo-300 hover:shadow"
-    >
-      <div className="font-medium text-slate-900">{applicant.candidateName}</div>
-      <div className="truncate text-xs text-slate-500">{applicant.candidateEmail}</div>
-      {applicant.stage === "REJECTED" && applicant.rejectionReason && (
-        <div className="mt-1 text-xs text-red-500">
-          {applicant.rejectionReason.replace(/_/g, " ").toLowerCase()}
+    <Link to={`/hr/candidate/${applicant.id}`} className="block">
+      <GlassCard className="p-3">
+        <div className="font-medium">{applicant.candidateName}</div>
+        <div className="truncate text-xs text-muted-foreground">
+          {applicant.candidateEmail}
         </div>
-      )}
-      {applicant.resumeUrl && (
-        <a
-          href={applicant.resumeUrl}
-          target="_blank"
-          rel="noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="mt-2 inline-block text-xs font-medium text-indigo-600 hover:underline"
-        >
-          View resume
-        </a>
-      )}
+        {applicant.stage === "REJECTED" && applicant.rejectionReason && (
+          <div className="mt-1 text-xs text-red-600">
+            {applicant.rejectionReason.replace(/_/g, " ").toLowerCase()}
+          </div>
+        )}
+        {applicant.resumeUrl && (
+          <a
+            href={applicant.resumeUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="mt-2 inline-block text-xs font-medium text-primary hover:underline"
+          >
+            View resume
+          </a>
+        )}
+      </GlassCard>
     </Link>
   );
 }

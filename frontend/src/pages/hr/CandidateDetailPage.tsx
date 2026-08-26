@@ -1,7 +1,21 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import api, { apiError } from "../../api/client";
 import type { CandidateDetail, DecisionKind } from "../../api/types";
+import { GlassCard } from "@/components/ui/glass-card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { StageBadge } from "@/components/StageBadge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 /**
  * HR scorecard for one candidate: every stage's score, the AI interview report,
@@ -48,9 +62,13 @@ export default function CandidateDetailPage() {
   }
 
   if (error && !detail) {
-    return <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>;
+    return (
+      <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-700">
+        {error}
+      </div>
+    );
   }
-  if (!detail) return <p className="text-slate-500">Loading…</p>;
+  if (!detail) return <p className="text-muted-foreground">Loading…</p>;
 
   const decided = detail.stage === "HIRED" || detail.stage === "REJECTED";
 
@@ -58,23 +76,31 @@ export default function CandidateDetailPage() {
     <div className="mx-auto max-w-3xl">
       <button
         onClick={() => navigate(-1)}
-        className="mb-4 text-sm text-indigo-600 hover:underline"
+        className="mb-4 inline-flex items-center gap-1 text-sm text-primary hover:underline"
       >
-        ← Back
+        <ArrowLeft className="size-4" />
+        Back
       </button>
 
       <header className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">{detail.candidateName}</h1>
-          <p className="text-slate-600">{detail.candidateEmail}</p>
-          <Link to={`/hr/pipeline/${detail.jobId}`} className="text-sm text-indigo-600 hover:underline">
+          <p className="text-muted-foreground">{detail.candidateEmail}</p>
+          <Link
+            to={`/hr/pipeline/${detail.jobId}`}
+            className="text-sm text-primary hover:underline"
+          >
             {detail.jobTitle}
           </Link>
         </div>
-        <StageBadge stage={detail.stage} />
+        <StageBadge stage={detail.stage} className="shrink-0 px-3 py-1 text-sm" />
       </header>
 
-      {error && <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {/* Score summary across all stages */}
       <section className="mb-6 grid grid-cols-3 gap-4">
@@ -85,12 +111,18 @@ export default function CandidateDetailPage() {
 
       {detail.ats && (
         <Panel title="Resume screen">
-          {detail.ats.summary && <p className="mb-3 text-sm text-slate-700">{detail.ats.summary}</p>}
-          <SkillRow label="Matched" skills={detail.ats.matchedSkills} tone="green" />
-          <SkillRow label="Missing" skills={detail.ats.missingSkills} tone="red" />
+          {detail.ats.summary && (
+            <p className="mb-3 text-sm text-muted-foreground">{detail.ats.summary}</p>
+          )}
+          <SkillRow label="Matched" skills={detail.ats.matchedSkills} tone="success" />
+          <SkillRow label="Missing" skills={detail.ats.missingSkills} tone="destructive" />
           {detail.resumeUrl && (
-            <a href={detail.resumeUrl} target="_blank" rel="noreferrer"
-              className="mt-2 inline-block text-sm font-medium text-indigo-600 hover:underline">
+            <a
+              href={detail.resumeUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-block text-sm font-medium text-primary hover:underline"
+            >
               View resume
             </a>
           )}
@@ -101,10 +133,13 @@ export default function CandidateDetailPage() {
         <Panel title="AI interview report">
           {detail.interview.recommendation && (
             <p className="mb-2 text-sm">
-              <span className="font-semibold">Recommendation:</span> {detail.interview.recommendation}
+              <span className="font-semibold">Recommendation:</span>{" "}
+              {detail.interview.recommendation}
             </p>
           )}
-          {detail.interview.summary && <p className="mb-3 text-sm text-slate-700">{detail.interview.summary}</p>}
+          {detail.interview.summary && (
+            <p className="mb-3 text-sm text-muted-foreground">{detail.interview.summary}</p>
+          )}
           {detail.interview.strengths && detail.interview.strengths.length > 0 && (
             <BulletBlock title="Strengths" items={detail.interview.strengths} />
           )}
@@ -119,9 +154,13 @@ export default function CandidateDetailPage() {
           <div className="space-y-3">
             {detail.transcript.map((m) => (
               <div key={m.order} className={m.role === "ai" ? "text-left" : "text-right"}>
-                <span className={`inline-block max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-sm ${
-                  m.role === "ai" ? "bg-slate-100 text-slate-800" : "bg-indigo-600 text-white"
-                }`}>
+                <span
+                  className={`inline-block max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-sm ${
+                    m.role === "ai"
+                      ? "bg-secondary text-secondary-foreground"
+                      : "bg-primary text-primary-foreground"
+                  }`}
+                >
                   {m.content}
                 </span>
               </div>
@@ -132,103 +171,112 @@ export default function CandidateDetailPage() {
 
       {/* Decision box — only when the candidate has cleared the pipeline */}
       {detail.stage === "FINAL" && (
-        <section className="mt-6 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+        <GlassCard hover={false} className="mt-6 bg-primary/5 p-4 ring-1 ring-primary/15">
           <h2 className="mb-2 font-semibold">Make a decision</h2>
-          <textarea
+          <Textarea
             rows={2}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Optional note to include in the candidate's email"
-            className="mb-3 w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="mb-3"
           />
           <div className="flex gap-3">
-            <button
-              onClick={() => setDecision("HIRE")}
-              className="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-            >
+            <Button variant="success" onClick={() => setDecision("HIRE")}>
               Hire
-            </button>
-            <button
-              onClick={() => setDecision("REJECT")}
-              className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-            >
+            </Button>
+            <Button variant="destructive" onClick={() => setDecision("REJECT")}>
               Reject
-            </button>
+            </Button>
           </div>
-        </section>
+        </GlassCard>
       )}
 
       {decided && (
-        <p className="mt-6 rounded-md bg-slate-100 px-4 py-3 text-center text-sm font-medium text-slate-600">
+        <p className="mt-6 rounded-lg bg-secondary px-4 py-3 text-center text-sm font-medium text-muted-foreground">
           Decision recorded: {detail.stage}.
         </p>
       )}
 
       {/* Confirm dialog */}
-      {decision && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-          onClick={() => !busy && setDecision(null)}>
-          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold">
+      <Dialog open={!!decision} onOpenChange={(open) => !open && !busy && setDecision(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
               {decision === "HIRE" ? "Hire this candidate?" : "Reject this candidate?"}
-            </h3>
-            <p className="mt-2 text-sm text-slate-500">
+            </DialogTitle>
+            <DialogDescription>
               {detail.candidateName} will be emailed{" "}
               {decision === "HIRE" ? "an offer message" : "a rejection message"}.
               {note.trim() && " Your note will be included."}
-            </p>
-            <div className="mt-4 flex justify-end gap-3">
-              <button onClick={() => setDecision(null)} disabled={busy}
-                className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium hover:bg-slate-200">
-                Cancel
-              </button>
-              <button onClick={submitDecision} disabled={busy}
-                className={`rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-60 ${
-                  decision === "HIRE" ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"
-                }`}>
-                {busy ? "Submitting…" : "Confirm"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDecision(null)} disabled={busy}>
+              Cancel
+            </Button>
+            <Button
+              variant={decision === "HIRE" ? "success" : "destructive"}
+              onClick={submitDecision}
+              disabled={busy}
+            >
+              {busy && <Loader2 className="size-4 animate-spin" />}
+              {busy ? "Submitting…" : "Confirm"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function ScoreCard({ label, score, passed }: { label: string; score: number | null; passed: boolean | null }) {
+function ScoreCard({
+  label,
+  score,
+  passed,
+}: {
+  label: string;
+  score: number | null;
+  passed: boolean | null;
+}) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 text-center">
-      <div className="text-2xl font-bold text-slate-900">{score != null ? `${score}` : "—"}</div>
-      <div className="mt-1 text-xs text-slate-500">{label}</div>
+    <GlassCard hover={false} className="p-4 text-center">
+      <div className="text-2xl font-bold">{score != null ? `${score}` : "—"}</div>
+      <div className="mt-1 text-xs text-muted-foreground">{label}</div>
       {passed != null && (
-        <span className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-          passed ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-        }`}>
+        <Badge variant={passed ? "success" : "destructive"} className="mt-2">
           {passed ? "passed" : "failed"}
-        </span>
+        </Badge>
       )}
-    </div>
+    </GlassCard>
   );
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mb-4 rounded-lg border border-slate-200 bg-white p-4">
+    <GlassCard hover={false} className="mb-4 p-4">
       <h2 className="mb-3 font-semibold">{title}</h2>
       {children}
-    </section>
+    </GlassCard>
   );
 }
 
-function SkillRow({ label, skills, tone }: { label: string; skills: string[]; tone: "green" | "red" }) {
+function SkillRow({
+  label,
+  skills,
+  tone,
+}: {
+  label: string;
+  skills: string[];
+  tone: "success" | "destructive";
+}) {
   if (!skills || skills.length === 0) return null;
-  const cls = tone === "green" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700";
   return (
-    <div className="mb-2">
-      <span className="mr-2 text-xs font-medium text-slate-500">{label}:</span>
+    <div className="mb-2 flex flex-wrap items-center gap-1">
+      <span className="mr-1 text-xs font-medium text-muted-foreground">{label}:</span>
       {skills.map((s) => (
-        <span key={s} className={`mr-1 inline-block rounded-full px-2 py-0.5 text-xs ${cls}`}>{s}</span>
+        <Badge key={s} variant={tone}>
+          {s}
+        </Badge>
       ))}
     </div>
   );
@@ -237,24 +285,14 @@ function SkillRow({ label, skills, tone }: { label: string; skills: string[]; to
 function BulletBlock({ title, items }: { title: string; items: string[] }) {
   return (
     <div className="mb-2">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{title}</p>
-      <ul className="mt-1 list-inside list-disc text-sm text-slate-700">
-        {items.map((it, i) => <li key={i}>{it}</li>)}
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </p>
+      <ul className="mt-1 list-inside list-disc text-sm text-muted-foreground">
+        {items.map((it, i) => (
+          <li key={i}>{it}</li>
+        ))}
       </ul>
     </div>
-  );
-}
-
-function StageBadge({ stage }: { stage: string }) {
-  const styles: Record<string, string> = {
-    HIRED: "bg-green-100 text-green-700",
-    REJECTED: "bg-red-100 text-red-700",
-    FINAL: "bg-purple-100 text-purple-700",
-  };
-  const style = styles[stage] ?? "bg-slate-100 text-slate-600";
-  return (
-    <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-medium ${style}`}>
-      {stage.replace(/_/g, " ")}
-    </span>
   );
 }

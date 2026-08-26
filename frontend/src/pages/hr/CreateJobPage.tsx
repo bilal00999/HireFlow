@@ -1,8 +1,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import api, { apiError } from "../../api/client";
 import type { CreateJobRequest, JobDetail, QuestionInput } from "../../api/types";
 import QuestionBuilder from "../../components/QuestionBuilder";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 type Step = 1 | 2 | 3;
 
@@ -99,80 +111,84 @@ export default function CreateJobPage() {
       <Steps step={step} />
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+        <div className="mb-4 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
       )}
 
       {step === 1 && (
         <div className="space-y-4">
           <Field label="Job title">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} className={input} />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>
           <Field label="Description">
-            <textarea rows={5} value={description} onChange={(e) => setDescription(e.target.value)} className={input} />
+            <Textarea rows={5} value={description} onChange={(e) => setDescription(e.target.value)} />
           </Field>
           <Field label="Requirements (optional)">
-            <textarea rows={3} value={requirements} onChange={(e) => setRequirements(e.target.value)} className={input} />
+            <Textarea rows={3} value={requirements} onChange={(e) => setRequirements(e.target.value)} />
           </Field>
           <Field label="Required skills (comma-separated)">
-            <input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="React, TypeScript, SQL" className={input} />
+            <Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="React, TypeScript, SQL" />
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Job type">
-              <select value={jobType} onChange={(e) => setJobType(e.target.value)} className={input}>
-                <option value="FULL_TIME">Full time</option>
-                <option value="PART_TIME">Part time</option>
-                <option value="CONTRACT">Contract</option>
-                <option value="INTERNSHIP">Internship</option>
-                <option value="REMOTE">Remote</option>
-              </select>
+              <Select value={jobType} onValueChange={setJobType}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FULL_TIME">Full time</SelectItem>
+                  <SelectItem value="PART_TIME">Part time</SelectItem>
+                  <SelectItem value="CONTRACT">Contract</SelectItem>
+                  <SelectItem value="INTERNSHIP">Internship</SelectItem>
+                  <SelectItem value="REMOTE">Remote</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Location">
-              <input value={location} onChange={(e) => setLocation(e.target.value)} className={input} />
+              <Input value={location} onChange={(e) => setLocation(e.target.value)} />
             </Field>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <Field label="Salary min">
-              <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} className={input} />
+              <Input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} />
             </Field>
             <Field label="Salary max">
-              <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} className={input} />
+              <Input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} />
             </Field>
             <Field label="Deadline">
-              <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} className={input} />
+              <Input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
             </Field>
           </div>
-          <Nav
-            onNext={() => setStep(2)}
-            nextDisabled={!canAdvanceFrom1}
-          />
+          <Nav onNext={() => setStep(2)} nextDisabled={!canAdvanceFrom1} />
         </div>
       )}
 
       {step === 2 && (
         <div className="space-y-4">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Candidates are auto-screened at each stage using these thresholds.
           </p>
           <Field label="Minimum ATS score to pass resume screen (0–100)">
-            <input type="number" value={atsMinScore} onChange={(e) => setAtsMinScore(e.target.value)} className={input} />
+            <Input type="number" value={atsMinScore} onChange={(e) => setAtsMinScore(e.target.value)} />
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Assessment pass score (%)">
-              <input type="number" value={assessmentPassScore} onChange={(e) => setAssessmentPassScore(e.target.value)} className={input} />
+              <Input type="number" value={assessmentPassScore} onChange={(e) => setAssessmentPassScore(e.target.value)} />
             </Field>
             <Field label="Assessment time limit (min)">
-              <input type="number" value={assessmentTimeLimit} onChange={(e) => setAssessmentTimeLimit(e.target.value)} className={input} />
+              <Input type="number" value={assessmentTimeLimit} onChange={(e) => setAssessmentTimeLimit(e.target.value)} />
             </Field>
           </div>
           <Field label="Interview topics (comma-separated)">
-            <input value={interviewTopics} onChange={(e) => setInterviewTopics(e.target.value)} placeholder="System design, Behavioral" className={input} />
+            <Input value={interviewTopics} onChange={(e) => setInterviewTopics(e.target.value)} placeholder="System design, Behavioral" />
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Interview duration (min)">
-              <input type="number" value={interviewDuration} onChange={(e) => setInterviewDuration(e.target.value)} className={input} />
+              <Input type="number" value={interviewDuration} onChange={(e) => setInterviewDuration(e.target.value)} />
             </Field>
             <Field label="Interview questions">
-              <input type="number" value={interviewNumQuestions} onChange={(e) => setInterviewNumQuestions(e.target.value)} className={input} />
+              <Input type="number" value={interviewNumQuestions} onChange={(e) => setInterviewNumQuestions(e.target.value)} />
             </Field>
           </div>
           <Nav onBack={() => setStep(1)} onNext={() => setStep(3)} />
@@ -181,7 +197,7 @@ export default function CreateJobPage() {
 
       {step === 3 && (
         <div className="space-y-4">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted-foreground">
             Add assessment questions candidates answer after passing the resume screen.
             You can skip this and add them later.
           </p>
@@ -190,6 +206,7 @@ export default function CreateJobPage() {
             onBack={() => setStep(2)}
             onSubmit={handleSubmit}
             submitLabel={busy ? "Publishing…" : "Publish job"}
+            submitBusy={busy}
             submitDisabled={busy}
           />
         </div>
@@ -198,14 +215,12 @@ export default function CreateJobPage() {
   );
 }
 
-const input = "w-full rounded-md border border-slate-300 px-3 py-2";
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
+    <div className="space-y-1.5">
+      <Label>{label}</Label>
       {children}
-    </label>
+    </div>
   );
 }
 
@@ -216,12 +231,12 @@ function Steps({ step }: { step: Step }) {
       {labels.map((label, i) => (
         <div
           key={label}
-          className={`flex-1 rounded-md px-3 py-2 text-center text-sm font-medium ${
+          className={`flex-1 rounded-lg px-3 py-2 text-center text-sm font-medium transition-colors ${
             step === i + 1
-              ? "bg-indigo-600 text-white"
+              ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
               : step > i + 1
-                ? "bg-indigo-100 text-indigo-700"
-                : "bg-slate-100 text-slate-500"
+                ? "bg-primary/12 text-primary"
+                : "bg-secondary text-muted-foreground"
           }`}
         >
           {i + 1}. {label}
@@ -238,6 +253,7 @@ function Nav({
   onSubmit,
   submitLabel,
   submitDisabled,
+  submitBusy,
 }: {
   onBack?: () => void;
   onNext?: () => void;
@@ -245,33 +261,27 @@ function Nav({
   onSubmit?: () => void;
   submitLabel?: string;
   submitDisabled?: boolean;
+  submitBusy?: boolean;
 }) {
   return (
     <div className="flex justify-between pt-2">
       {onBack ? (
-        <button onClick={onBack} className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium hover:bg-slate-200">
+        <Button variant="outline" onClick={onBack}>
           Back
-        </button>
+        </Button>
       ) : (
         <span />
       )}
       {onNext && (
-        <button
-          onClick={onNext}
-          disabled={nextDisabled}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-        >
+        <Button onClick={onNext} disabled={nextDisabled}>
           Next
-        </button>
+        </Button>
       )}
       {onSubmit && (
-        <button
-          onClick={onSubmit}
-          disabled={submitDisabled}
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
-        >
+        <Button variant="gradient" onClick={onSubmit} disabled={submitDisabled}>
+          {submitBusy && <Loader2 className="size-4 animate-spin" />}
           {submitLabel}
-        </button>
+        </Button>
       )}
     </div>
   );

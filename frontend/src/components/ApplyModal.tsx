@@ -1,6 +1,18 @@
 import { useState, type FormEvent } from "react";
+import { Loader2, AlertCircle } from "lucide-react";
 import api, { apiError } from "../api/client";
 import type { ApplyResponse } from "../api/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 /**
  * Resume + optional cover letter, posted as multipart/form-data to
@@ -45,65 +57,56 @@ export default function ApplyModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-lg font-bold">Apply for {jobTitle}</h2>
-        <p className="mt-1 text-sm text-slate-500">
-          Attach your resume as a PDF or Word document.
-        </p>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Apply for {jobTitle}</DialogTitle>
+          <DialogDescription>
+            Attach your resume as a PDF or Word document.
+          </DialogDescription>
+        </DialogHeader>
 
         {error && (
-          <div className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
+          <div className="flex items-center gap-2 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-sm text-red-700">
+            <AlertCircle className="size-4 shrink-0" />
+            {error}
+          </div>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Resume</span>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <Label htmlFor="resume">Resume</Label>
             <input
+              id="resume"
               type="file"
               accept=".pdf,.doc,.docx"
               required
               onChange={(e) => setResume(e.target.files?.[0] ?? null)}
-              className="w-full text-sm file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-indigo-700"
+              className="w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary hover:file:bg-primary/15"
             />
-          </label>
+          </div>
 
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">
-              Cover letter (optional)
-            </span>
-            <textarea
+          <div className="space-y-1.5">
+            <Label htmlFor="coverLetter">Cover letter (optional)</Label>
+            <Textarea
+              id="coverLetter"
               rows={4}
               value={coverLetter}
               onChange={(e) => setCoverLetter(e.target.value)}
-              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
             />
-          </label>
-
-          <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md bg-slate-100 px-4 py-2 text-sm font-medium hover:bg-slate-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={busy}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
-            >
-              {busy ? "Submitting…" : "Submit application"}
-            </button>
           </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="gradient" disabled={busy}>
+              {busy && <Loader2 className="size-4 animate-spin" />}
+              {busy ? "Submitting…" : "Submit application"}
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

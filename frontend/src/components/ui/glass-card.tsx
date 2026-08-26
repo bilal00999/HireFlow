@@ -15,12 +15,12 @@ export function GlassCard({
   return (
     <motion.div
       className={cn(
-        "relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl",
-        "shadow-[0_8px_30px_rgb(0,0,0,0.12)]",
+        "relative rounded-2xl border border-border bg-card/80 backdrop-blur-xl",
+        "shadow-card",
         // Subtle top gradient sheen
-        "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent",
+        "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-primary/20 before:to-transparent",
         hover &&
-          "transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06] hover:shadow-[0_12px_40px_rgba(59,130,246,0.15)]",
+          "transition-all duration-300 hover:border-primary/20 hover:bg-card hover:shadow-card-hover hover:-translate-y-0.5",
         className,
       )}
       {...props}

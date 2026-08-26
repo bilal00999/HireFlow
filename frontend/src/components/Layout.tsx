@@ -84,10 +84,10 @@ export default function Layout() {
         onClick={onNavigate}
         className={({ isActive }) =>
           cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
             isActive
-              ? "bg-primary/15 text-primary"
-              : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+              ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
           )
         }
       >
@@ -97,10 +97,10 @@ export default function Layout() {
     ));
 
   const userBlock = (
-    <div className="border-t border-white/10 p-3">
+    <div className="border-t border-border p-3">
       {isAuthenticated ? (
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-white/5">
+          <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left transition-colors hover:bg-accent">
             <Avatar className="size-8">
               <AvatarFallback className="text-xs">{initials}</AvatarFallback>
             </Avatar>
@@ -123,7 +123,7 @@ export default function Layout() {
           <Link
             to="/login"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+            className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
           >
             <LogIn className="size-4" />
             Log in
@@ -131,7 +131,7 @@ export default function Layout() {
           <Link
             to="/register"
             onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 px-3 py-2 text-sm font-medium text-white shadow-sm shadow-primary/25 transition-opacity hover:opacity-90"
           >
             <UserPlus className="size-4" />
             Sign up
@@ -147,7 +147,7 @@ export default function Layout() {
 
       <div className="flex min-h-screen">
         {/* Desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-white/10 bg-white/[0.03] backdrop-blur-xl md:flex">
+        <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border bg-sidebar md:flex">
           <div className="py-4">{brand}</div>
           <nav className="flex flex-1 flex-col gap-1 px-3">{navLinks()}</nav>
           {userBlock}
@@ -155,10 +155,10 @@ export default function Layout() {
 
         <main className="flex-1 overflow-x-hidden">
           {/* Mobile top bar */}
-          <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur-xl md:hidden">
+          <div className="flex items-center justify-between border-b border-border bg-sidebar px-4 py-3 md:hidden">
             {brand}
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-              <SheetTrigger className="rounded-lg p-2 hover:bg-white/5">
+              <SheetTrigger className="rounded-lg p-2 hover:bg-accent">
                 <Menu className="size-5" />
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0">
