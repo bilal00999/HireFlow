@@ -167,10 +167,12 @@ class ApplicationFlowIntegrationTest {
 
     @Test
     void unauthenticatedApplyIsRejected() throws Exception {
+        // No token → unauthenticated → 401 (the AuthenticationEntryPoint). This is
+        // distinct from the authenticated-but-wrong-role case above, which stays 403.
         mockMvc.perform(multipart("/api/v1/applications")
                         .file(resumeFile())
                         .param("jobId", activeJobId.toString()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

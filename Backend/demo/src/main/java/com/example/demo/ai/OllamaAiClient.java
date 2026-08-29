@@ -3,6 +3,7 @@ package com.example.demo.ai;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -18,10 +19,12 @@ import java.util.Map;
  * Free, local AI backend (Ollama, http://localhost:11434). Sends a chat
  * request with {@code stream:false} and returns the assembled message text.
  *
- * <p>Configured via {@code app.ai.ollama.*}. This is the default provider for
- * development; production can swap in a Gemini-backed {@link AiClient}.
+ * <p>Configured via {@code app.ai.ollama.*}. Selected by setting
+ * {@code app.ai.provider=ollama}; the default provider is Gemini
+ * ({@link GeminiAiClient}).
  */
 @Component
+@ConditionalOnProperty(name = "app.ai.provider", havingValue = "ollama")
 public class OllamaAiClient implements AiClient {
 
     private final HttpClient http;
