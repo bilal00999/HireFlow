@@ -6,11 +6,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
- * Default {@link EmailSender} that "delivers" mail by logging it to the console
- * instead of contacting a provider. Active unless {@code app.email.provider} is
- * set to something other than {@code log} (e.g. {@code smtp}), at which point a
- * real transport bean takes over. This lets the whole pipeline be developed and
- * tested end-to-end with zero external accounts.
+ * Fallback {@link EmailSender} that "delivers" mail by logging it to the console
+ * instead of contacting a provider. Active when {@code app.email.provider=log}
+ * or the property is unset; when it is {@code brevo}, {@link BrevoEmailSender}
+ * takes over. This lets the whole pipeline be developed and tested end-to-end
+ * with zero external accounts, and keeps tests off real SMTP.
  */
 @Component
 @ConditionalOnProperty(name = "app.email.provider", havingValue = "log", matchIfMissing = true)

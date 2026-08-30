@@ -44,8 +44,8 @@
         <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
 
-    <!-- Email transport (JavaMailSender). Only used when app.email.provider=smtp;
-         the default log-only sender needs no SMTP server. -->
+    <!-- Email transport (JavaMailSender) for the Brevo SMTP sender
+         (app.email.provider=brevo, the default). The log-only sender needs none. -->
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-mail</artifactId>

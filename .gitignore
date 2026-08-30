@@ -24,3 +24,4 @@ frontend/.vite/
 *.iml
 .DS_Store
 Thumbs.db
+Backend/demo/src/test/resources/application.properties
