@@ -40,4 +40,42 @@ public class User {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // --- Cloudinary profile image (public image; all null until one is uploaded) ---
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
+    @Column(name = "profile_image_public_id", length = 300)
+    private String profileImagePublicId;
+
+    @Column(name = "profile_image_name", length = 300)
+    private String profileImageName;
+
+    @Column(name = "profile_image_type", length = 100)
+    private String profileImageType;
+
+    @Column(name = "profile_image_size")
+    private Long profileImageSize;
+
+    @Column(name = "profile_image_updated_at")
+    private LocalDateTime profileImageUpdatedAt;
+
+    // --- Cloudinary resume (private raw file; all null until one is uploaded) ---
+    @Column(name = "resume_url", length = 500)
+    private String resumeUrl;
+
+    @Column(name = "resume_public_id", length = 300)
+    private String resumePublicId;
+
+    @Column(name = "resume_name", length = 300)
+    private String resumeName;
+
+    @Column(name = "resume_type", length = 150)
+    private String resumeType;
+
+    @Column(name = "resume_size")
+    private Long resumeSize;
+
+    @Column(name = "resume_updated_at")
+    private LocalDateTime resumeUpdatedAt;
 }
