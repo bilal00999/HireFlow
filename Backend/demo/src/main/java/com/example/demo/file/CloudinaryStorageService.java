@@ -3,6 +3,8 @@ package com.example.demo.file;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.demo.common.FileStorageException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +29,8 @@ import java.util.UUID;
  */
 @Service
 public class CloudinaryStorageService {
+
+    private static final Logger log = LoggerFactory.getLogger(CloudinaryStorageService.class);
 
     static final String PROFILE_IMAGE_FOLDER = "hireflow/profile-images";
     static final String RESUME_FOLDER = "hireflow/resumes";
@@ -66,6 +70,10 @@ public class CloudinaryStorageService {
         } catch (IOException e) {
             throw new FileStorageException("Could not read the uploaded file", e);
         } catch (RuntimeException e) {
+            // Surface Cloudinary's own reason (e.g. a restricted key: "Request forbidden due to
+            // missing permissions (actions=[create])", or quota/format errors) so operators can
+            // act on it. The API key/secret are stripped first — they must never reach the logs.
+            log.warn("Cloudinary rejected the upload: {}", maskSecrets(e.getMessage()));
             throw new FileStorageException("Could not upload the file to storage", e);
         }
     }
@@ -102,6 +110,27 @@ public class CloudinaryStorageService {
                 .secure(true)
                 .signed(true)
                 .generate(publicId);
+    }
+
+    /**
+     * Removes the Cloudinary API key/secret from a message before it is logged.
+     * Cloudinary error strings normally carry only a request id, but a defensive
+     * strip guarantees credentials can never leak into log files even if a future
+     * SDK version echoes them back.
+     */
+    private String maskSecrets(String message) {
+        if (message == null) {
+            return null;
+        }
+        String key = cloudinary.config.apiKey;
+        String secret = cloudinary.config.apiSecret;
+        if (key != null && !key.isBlank()) {
+            message = message.replace(key, "<api_key>");
+        }
+        if (secret != null && !secret.isBlank()) {
+            message = message.replace(secret, "<api_secret>");
+        }
+        return message;
     }
 
     /** The two pieces of Cloudinary state we keep: the delivery URL and the id used to delete. */
