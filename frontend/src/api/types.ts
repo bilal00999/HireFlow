@@ -29,6 +29,50 @@ export interface RegisterCompanyRequest {
   industry?: string;
 }
 
+// --- Candidate profile (com.example.demo.user.dto + file.dto) ---
+
+/** Public profile image; `url` is a Cloudinary secure URL, safe in <img>. */
+export interface ProfileImageResponse {
+  url: string;
+  fileName: string;
+  contentType: string;
+  size: number | null;
+  updatedAt: string;
+}
+
+/** Resume metadata. Deliberately no direct storage URL — download via the API. */
+export interface ResumeResponse {
+  fileName: string;
+  contentType: string;
+  size: number | null;
+  updatedAt: string;
+  downloadUrl: string;
+}
+
+/** Full candidate profile hydrated in one call; file fields are null when unset. */
+export interface MeResponse {
+  id: string;
+  email: string;
+  fullName: string;
+  phone: string | null;
+  linkedinUrl: string | null;
+  role: Role;
+  profileImage: ProfileImageResponse | null;
+  resume: ResumeResponse | null;
+}
+
+export interface UpdateProfileRequest {
+  fullName: string;
+  email: string;
+  phone?: string;
+  linkedinUrl?: string;
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface JobSummary {
   id: string;
   title: string;

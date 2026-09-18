@@ -13,6 +13,7 @@ import CandidateDetailPage from "./pages/hr/CandidateDetailPage";
 import CreateJobPage from "./pages/hr/CreateJobPage";
 import AssessmentPage from "./pages/AssessmentPage";
 import InterviewPage from "./pages/InterviewPage";
+import ProfilePage from "./pages/ProfilePage";
 
 /**
  * App routes. Public: job browsing + auth. Candidate-only: my applications.
@@ -41,6 +42,15 @@ function App() {
             element={
               <ProtectedRoute role="CANDIDATE">
                 <MyApplicationsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute role="CANDIDATE">
+                <ProfilePage />
               </ProtectedRoute>
             }
           />

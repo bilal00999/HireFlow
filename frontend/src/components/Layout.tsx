@@ -9,6 +9,7 @@ import {
   LogOut,
   LogIn,
   UserPlus,
+  User,
   Menu,
   type LucideIcon,
 } from "lucide-react";
@@ -112,6 +113,17 @@ export default function Layout() {
           <DropdownMenuContent side="top" className="w-48">
             <DropdownMenuLabel className="truncate">{user?.email}</DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {isCandidate && (
+              <DropdownMenuItem
+                onClick={() => {
+                  setMobileOpen(false);
+                  navigate("/profile");
+                }}
+              >
+                <User />
+                Profile
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Log out

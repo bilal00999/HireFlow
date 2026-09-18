@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.net.URI;
+import java.util.Map;
 
 /**
  * Candidate resume upload/replace/delete plus authorized download. Resumes are
@@ -45,6 +46,17 @@ public class ResumeController {
     public ResponseEntity<Void> download() {
         String signedUrl = userFileService.currentResumeSignedUrl();
         return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(signedUrl)).build();
+    }
+
+    /**
+     * Returns a short-lived signed URL for the owner's resume as JSON. A token-based
+     * SPA cannot attach the Bearer header to a plain link or {@code window.open}, so
+     * it fetches this (with the header) and then opens the returned URL directly.
+     */
+    @GetMapping("/download-url")
+    @PreAuthorize("hasRole('CANDIDATE')")
+    public Map<String, String> downloadUrl() {
+        return Map.of("url", userFileService.currentResumeSignedUrl());
     }
 
     /** Remove the current candidate's resume. */

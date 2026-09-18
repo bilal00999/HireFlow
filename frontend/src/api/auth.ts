@@ -27,6 +27,7 @@ interface AuthState {
   login: (req: LoginRequest) => Promise<AuthResponse>;
   registerCandidate: (req: RegisterCandidateRequest) => Promise<AuthResponse>;
   registerCompany: (req: RegisterCompanyRequest) => Promise<AuthResponse>;
+  updateUser: (partial: Partial<AuthResponse>) => void;
   logout: () => void;
 }
 
@@ -64,6 +65,22 @@ export const useAuth = create<AuthState>((set) => {
       apply(data);
       set({ user: data, isAuthenticated: true, isHr: true, isCandidate: false });
       return data;
+    },
+
+    // Merge server-confirmed profile changes (e.g. name/email) into the stored
+    // session so the sidebar and guards reflect them without a re-login. Keeps
+    // the existing token; a no-op if there's no active user.
+    updateUser: (partial) => {
+      set((state) => {
+        if (!state.user) return state;
+        const next = { ...state.user, ...partial };
+        persist(next);
+        return {
+          user: next,
+          isHr: next.role === "HR",
+          isCandidate: next.role === "CANDIDATE",
+        };
+      });
     },
 
     logout: () => {
