@@ -39,10 +39,32 @@ public class BrevoEmailSender implements EmailSender {
 
     public BrevoEmailSender(JavaMailSender mailSender,
                             @Value("${app.email.from:bilalahmed20051@gmail.com}") String fromEmail,
-                            @Value("${app.email.from-name:HireFlow}") String fromName) {
+                            @Value("${app.email.from-name:HireFlow}") String fromName,
+                            @Value("${spring.mail.password:}") String smtpKey) {
         this.mailSender = mailSender;
         this.fromEmail = fromEmail;
         this.fromName = fromName;
+        warnIfSmtpKeyLooksWrong(smtpKey);
+    }
+
+    /**
+     * Startup sanity check on the configured SMTP secret. Brevo's SMTP relay
+     * authenticates with the <b>SMTP key</b> ({@code xsmtpsib-…}); the REST
+     * <b>API v3 key</b> ({@code xkeysib-…}) is rejected with "535 Authentication
+     * failed", which — because sends are best-effort — silently drops every mail.
+     * We log a clear WARN (never the key itself, only its non-secret prefix type)
+     * so the misconfiguration is obvious in the logs instead of invisible.
+     */
+    private void warnIfSmtpKeyLooksWrong(String smtpKey) {
+        if (smtpKey == null || smtpKey.isBlank()) {
+            log.warn("Email provider is 'brevo' but no SMTP key is configured "
+                    + "(BREVO_SMTP_KEY is empty); every email will fail SMTP authentication. "
+                    + "Set the Brevo SMTP key in .env.");
+        } else if (smtpKey.startsWith("xkeysib-")) {
+            log.warn("BREVO_SMTP_KEY looks like a Brevo API v3 key (xkeysib-…), which the SMTP "
+                    + "relay rejects with '535 Authentication failed'. Use the SMTP key "
+                    + "(xsmtpsib-…) from Brevo -> SMTP & API -> SMTP tab instead.");
+        }
     }
 
     @Override
