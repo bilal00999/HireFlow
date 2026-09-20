@@ -66,8 +66,9 @@ class EmailServiceTest {
         EmailMessage msg = capture();
         assertThat(msg.subject())
                 .isEqualTo("Next step: Complete your assessment for Backend Developer");
-        // No double slash — trailing slash on the base URL was trimmed.
-        assertThat(msg.body()).contains("http://localhost:5173/assessment?token=tok-abc123");
+        // No double slash — trailing slash on the base URL was trimmed. Path-param
+        // form (/assessment/<token>) to match the React route /assessment/:token.
+        assertThat(msg.body()).contains("http://localhost:5173/assessment/tok-abc123");
         assertThat(msg.body()).contains("Acme Corp");
         assertThat(msg.body()).contains("45-minute");
     }

@@ -75,7 +75,7 @@ public class EmailService {
     public void sendAssessmentInvite(String candidateEmail, String candidateName, String jobTitle,
                                      String companyName, String tokenValue, LocalDateTime expiresAt,
                                      int timeLimitMinutes) {
-        String link = frontendUrl + "/assessment?token=" + tokenValue;
+        String link = frontendUrl + "/assessment/" + tokenValue;
         String subject = "Next step: Complete your assessment for " + jobTitle;
         String body = """
                 Hi %s,
@@ -127,7 +127,7 @@ public class EmailService {
     public void sendInterviewInvite(String candidateEmail, String candidateName, String jobTitle,
                                     String companyName, String tokenValue, LocalDateTime expiresAt,
                                     int durationMinutes) {
-        String link = frontendUrl + "/interview?token=" + tokenValue;
+        String link = frontendUrl + "/interview/" + tokenValue;
         String subject = "You've been selected for an AI Interview!";
         String body = """
                 Hi %s,
